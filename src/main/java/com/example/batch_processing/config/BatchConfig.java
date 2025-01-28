@@ -9,6 +9,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.data.RepositoryItemWriter;
+import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
@@ -60,10 +61,10 @@ public class BatchConfig {
 
     @Bean
     public RepositoryItemWriter<User> writer() {
-        RepositoryItemWriter<User> writer = new RepositoryItemWriter<>();
-        writer.setRepository(userRepository);
-        writer.setMethodName("save");
-        return writer;
+        return new RepositoryItemWriterBuilder<User>()
+                .repository(userRepository)
+                .methodName("save")
+                .build();
     }
 
     @Bean
