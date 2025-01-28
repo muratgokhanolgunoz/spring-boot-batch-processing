@@ -5,9 +5,7 @@ import com.example.batch_processing.repository.UserRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.builder.JobBuilder;
-import org.springframework.batch.core.job.flow.support.SimpleFlow;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.data.RepositoryItemWriter;
@@ -21,9 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -47,7 +42,13 @@ public class BatchConfig {
                 .resource(new FileSystemResource("src/main/resources/users.csv"))
                 .name("csvReader")
                 .linesToSkip(1)
-                .lineMapper(lineMapper())
+                .delimited()
+                .delimiter(",")
+                .names("id", "firstname", "lastname", "email")
+                .fieldSetMapper(new BeanWrapperFieldSetMapper<>() {{
+                    setTargetType(User.class);
+                }})
+//                .lineMapper(lineMapper())
                 .build();
     }
 
@@ -71,40 +72,40 @@ public class BatchConfig {
                 .reader(reader())
                 .processor(processor())
                 .writer(writer())
-                .taskExecutor(taskExecutor())
-                .faultTolerant()
-                .retry(NullPointerException.class)
-                .retryLimit(3)
-                .backOffPolicy(new FixedBackOffPolicy() {{
-                    setBackOffPeriod(2000);
-                }})
-                .noRetry(RuntimeException.class)
+//                .taskExecutor(taskExecutor())
+//                .faultTolerant()
+//                .retry(NullPointerException.class)
+//                .retryLimit(3)
+//                .backOffPolicy(new FixedBackOffPolicy() {{
+//                    setBackOffPeriod(2000);
+//                }})
+//                .noRetry(RuntimeException.class)
+//                .startLimit(1)
                 .build();
     }
 
-    @Bean
-    public SimpleFlow flow() {
-        return new FlowBuilder<SimpleFlow>("flow")
-                .start(step())
-                .next(step()).from(step()).on("FAILED").to(step())
-                .next(step())
-                .end();
-    }
+//    @Bean
+//    public SimpleFlow flow() {
+//        return new FlowBuilder<SimpleFlow>("flow")
+//                .start(step())
+//                .next(step()).from(step()).on("FAILED").to(step())
+//                .next(step())
+//                .end();
+//    }
 
     @Bean
     public Job job() {
         return new JobBuilder("importUsers", jobRepository)
-                .start(flow())
-                .end()
+                .start(step())
                 .build();
     }
 
-    @Bean
-    public TaskExecutor taskExecutor() {
-        SimpleAsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
-        asyncTaskExecutor.setConcurrencyLimit(10);
-        return asyncTaskExecutor;
-    }
+//    @Bean
+//    public TaskExecutor taskExecutor() {
+//        SimpleAsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
+//        asyncTaskExecutor.setConcurrencyLimit(10);
+//        return asyncTaskExecutor;
+//    }
 
     private LineMapper<User> lineMapper() {
         DefaultLineMapper<User> lineMapper = new DefaultLineMapper<>();
