@@ -45,9 +45,10 @@ public class BatchConfig {
                 .delimited()
                 .delimiter(",")
                 .names("id", "firstname", "lastname", "email")
-                .fieldSetMapper(new BeanWrapperFieldSetMapper<>() {{
-                    setTargetType(User.class);
-                }})
+                .targetType(User.class)
+//                .fieldSetMapper(new BeanWrapperFieldSetMapper<>() {{
+//                    setTargetType(User.class);
+//                }})
 //                .lineMapper(lineMapper())
                 .build();
     }
